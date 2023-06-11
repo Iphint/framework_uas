@@ -120,7 +120,7 @@ const Pagination = ({ studentsPerPage, totalStudents, currentPage, paginate }) =
           <li
             key={number}
             className={`px-3 py-1 cursor-pointer ${
-              currentPage === number ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-600'
+              currentPage === number ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-600'
             }`}
             onClick={() => paginate(number)}
           >
