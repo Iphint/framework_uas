@@ -90,6 +90,7 @@ const Contact = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              placeholder='masukan nama anda'
               required
               className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
@@ -106,6 +107,7 @@ const Contact = () => {
               id="email"
               name="email"
               value={formData.email}
+              placeholder='masukan email anda'
               onChange={handleChange}
               required
               className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -125,6 +127,7 @@ const Contact = () => {
               onChange={handleChange}
               required
               rows={4}
+              placeholder='berikan masukan anda'
               className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             ></textarea>
           </div>

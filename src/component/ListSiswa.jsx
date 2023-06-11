@@ -19,7 +19,7 @@ const ListSiswa = () => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [isDataFound, setIsDataFound] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [studentsPerPage] = useState(5);
+  const [studentsPerPage] = useState(7);
 
   const handleSearch = (e) => {
     const value = e.target.value;
