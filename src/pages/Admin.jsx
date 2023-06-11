@@ -4,16 +4,22 @@ import gql from 'graphql-tag';
 import Swal from 'sweetalert2';
 
 const GET_STUDENTS = gql`
-  query GetStudents {
-    table_mhs(order_by: { id: asc }) {
+  query GetStudents($page: Int!, $pageSize: Int!) {
+    table_mhs(order_by: { id: asc }, limit: $pageSize, offset: $page) {
       id
       nama
       prodi
       angkatan
       nim
     }
+    table_mhs_aggregate {
+      aggregate {
+        count
+      }
+    }
   }
 `;
+
 
 const ADD_STUDENT = gql`
   mutation AddStudent(
@@ -69,10 +75,21 @@ const Admin = () => {
   const [prodi, setProdi] = useState('');
   const [angkatan, setAngkatan] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // Number of items per page
 
-  const { loading, error, data, refetch } = useQuery(GET_STUDENTS);
+  const { loading, error, data, refetch } = useQuery(GET_STUDENTS, {
+    variables: {
+      page: (currentPage - 1) * pageSize,
+      pageSize: pageSize,
+    },
+  });
+  
   const [addStudent] = useMutation(ADD_STUDENT, {
-    onCompleted: () => refetch(),
+    onCompleted: () => {
+      refetch();
+      setCurrentPage(1); // Reset to the first page after adding a student
+    },
   });
   const [updateStudent] = useMutation(UPDATE_STUDENT, {
     refetchQueries: [{ query: GET_STUDENTS }],
@@ -80,12 +97,10 @@ const Admin = () => {
   const [deleteStudent] = useMutation(DELETE_STUDENT, {
     refetchQueries: [{ query: GET_STUDENTS }],
   });
-
-  // Cek apakah token ada di local storage saat komponen dimuat
+  
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      // Redirect ke halaman login jika tidak ada token
       window.location.href = '/login';
     }
   }, []);
@@ -103,9 +118,7 @@ const Admin = () => {
         confirmButtonText: 'Yes, logout!'
       }).then((result) => {
         if (result.isConfirmed) {
-          // Hapus token dari local storage
           localStorage.removeItem('token');
-          // Redirect ke halaman login setelah logout
           window.location.href = '/login';
         }
       });
@@ -195,7 +208,6 @@ const Admin = () => {
             icon: 'error',
             title: 'Oops...',
             text: 'Something went wrong!',
-            footer: '<a href="">Why do I have this issue?</a>'
           });
         }
       }
@@ -210,6 +222,10 @@ const Admin = () => {
     setAngkatan(student.angkatan.toString());
   };
 
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -217,6 +233,9 @@ const Admin = () => {
       </div>
     );
   if (error) return <p>Error: {error.message}</p>;
+
+  const totalItems = data.table_mhs_aggregate.aggregate.count;
+  const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
     <div className="w-full">
@@ -294,7 +313,7 @@ const Admin = () => {
       <table className="w-full">
         <thead>
           <tr>
-            <th className="px-4 py-2">id</th>
+            <th className="px-4 py-2">No</th>
             <th className="px-4 py-2">Nama</th>
             <th className="px-4 py-2">NIM</th>
             <th className="px-4 py-2">Prodi</th>
@@ -303,9 +322,9 @@ const Admin = () => {
           </tr>
         </thead>
         <tbody>
-          {data.table_mhs.map((student) => (
+          {data.table_mhs.map((student, i) => (
             <tr key={student.id} className="mb-2">
-              <td className="px-4 py-2 text-center">{student.id}</td>
+              <td className="px-4 py-2 text-center">{i + 1}</td>
               <td className="px-4 py-2 text-center">{student.nama}</td>
               <td className="px-4 py-2 text-center">{student.nim}</td>
               <td className="px-4 py-2 text-center">{student.prodi}</td>
@@ -330,6 +349,31 @@ const Admin = () => {
           ))}
         </tbody>
       </table>
+      <div className="flex justify-center items-center mt-4">
+        <button
+          className={`bg-gray-500 text-white px-4 py-2 rounded ${
+            currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          type="button"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span className="mx-4 text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          className={`bg-gray-500 text-white px-4 py-2 rounded ${
+            currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          type="button"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 };

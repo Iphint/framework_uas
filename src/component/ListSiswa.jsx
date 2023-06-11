@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 const GET_STUDENTS = gql`
   query GetStudents {
-    table_mhs(order_by: {angkatan: asc}) {
+    table_mhs(order_by: { angkatan: asc }) {
       id
       nama
       prodi
@@ -18,6 +18,8 @@ const ListSiswa = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [isDataFound, setIsDataFound] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [studentsPerPage] = useState(5);
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -34,7 +36,15 @@ const ListSiswa = () => {
     );
     setFilteredStudents(filteredData);
     setIsDataFound(filteredData && filteredData.length > 0);
+    setCurrentPage(1); // Reset current page to 1 when filtering
   };
+
+  const indexOfLastStudent = currentPage * studentsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+  const currentStudents = searchTerm ? filteredStudents : data?.table_mhs;
+  const currentStudentsSlice = currentStudents?.slice(indexOfFirstStudent, indexOfLastStudent);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   if (loading)
     return (
@@ -43,8 +53,6 @@ const ListSiswa = () => {
       </div>
     );
   if (error) return <p>Error: {error.message}</p>;
-
-  const students = searchTerm ? filteredStudents : data?.table_mhs;
 
   return (
     <div className="container mx-auto">
@@ -58,36 +66,69 @@ const ListSiswa = () => {
           onChange={handleSearch}
         />
       </div>
-      {students && students.length > 0 ? (
-        <table className="min-w-full">
-          <thead>
-            <tr>
-              <th className="px-4 py-2">No</th>
-              <th className="px-4 py-2">Nama</th>
-              <th className="px-4 py-2">NIM</th>
-              <th className="px-4 py-2">Prodi</th>
-              <th className="px-4 py-2">Angkatan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((student,i) => (
-              <tr key={student.id} className="mb-3">
-                <td className="px-4 py-2 text-center">{i + 1}</td>
-                <td className="px-4 py-2 text-center">{student.nama}</td>
-                <td className="px-4 py-2 text-center">{student.nim}</td>
-                <td className="px-4 py-2 text-center">{student.prodi}</td>
-                <td className="px-4 py-2 text-center">{student.angkatan}</td>
+      {currentStudentsSlice && currentStudentsSlice.length > 0 ? (
+        <div>
+          <table className="min-w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">No</th>
+                <th className="px-4 py-2">Nama</th>
+                <th className="px-4 py-2">NIM</th>
+                <th className="px-4 py-2">Prodi</th>
+                <th className="px-4 py-2">Angkatan</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentStudentsSlice.map((student, index) => (
+                <tr key={student.id} className="mb-3">
+                  <td className="px-4 py-2 text-center">{indexOfFirstStudent + index + 1}</td>
+                  <td className="px-4 py-2 text-center">{student.nama}</td>
+                  <td className="px-4 py-2 text-center">{student.nim}</td>
+                  <td className="px-4 py-2 text-center">{student.prodi}</td>
+                  <td className="px-4 py-2 text-center">{student.angkatan}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Pagination
+            studentsPerPage={studentsPerPage}
+            totalStudents={currentStudents?.length}
+            currentPage={currentPage}
+            paginate={paginate}
+          />
+        </div>
       ) : (
         <div className="bg-gray-200 p-8 text-center">
           <p className="text-2xl font-bold text-gray-600">Data not found</p>
-          <p className="text-gray-500">Data yang di inputkan tidak mencocoki data dalam database.</p>
+          <p className="text-gray-500">Data yang diinputkan tidak cocok dengan data dalam database.</p>
         </div>
       )}
     </div>
+  );
+};
+
+const Pagination = ({ studentsPerPage, totalStudents, currentPage, paginate }) => {
+  const pageNumbers = [];
+  for (let i = 1; i <= Math.ceil(totalStudents / studentsPerPage); i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <nav className="mt-4">
+      <ul className="flex justify-center">
+        {pageNumbers.map((number) => (
+          <li
+            key={number}
+            className={`px-3 py-1 cursor-pointer ${
+              currentPage === number ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-600'
+            }`}
+            onClick={() => paginate(number)}
+          >
+            {number}
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 };
 
