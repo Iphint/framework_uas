@@ -7,7 +7,6 @@ const httpLink = createHttpLink({
   });
   
   const authLink = setContext((_, { headers }) => {
-    // Menambahkan header Authorization jika diperlukan
     const token = HasuraToken
     return {
       headers: {
