@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 
 const GET_STUDENTS = gql`
   query GetStudents {
-    table_mhs {
+    table_mhs(order_by: {angkatan: asc}) {
       id
       nama
       prodi

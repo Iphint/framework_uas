@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import gql from 'graphql-tag';
+import Swal from 'sweetalert2';
 
 const GET_STUDENTS = gql`
   query GetStudents {
-    table_mhs(order_by: {id: asc}) {
+    table_mhs(order_by: { id: asc }) {
       id
       nama
       prodi
@@ -80,6 +81,37 @@ const Admin = () => {
     refetchQueries: [{ query: GET_STUDENTS }],
   });
 
+  // Cek apakah token ada di local storage saat komponen dimuat
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect ke halaman login jika tidak ada token
+      window.location.href = '/login';
+    }
+  }, []);
+
+  const handleLogout = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "Apakah anda ingin logout ?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, logout!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Hapus token dari local storage
+          localStorage.removeItem('token');
+          // Redirect ke halaman login setelah logout
+          window.location.href = '/login';
+        }
+      });
+    }
+  };
+
   const handleAdd = async () => {
     try {
       await addStudent({
@@ -94,8 +126,20 @@ const Admin = () => {
       setNim('');
       setProdi('');
       setAngkatan('');
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: 'Data successfully added',
+        showConfirmButton: false,
+        timer: 1500
+      });
     } catch (error) {
       console.error('Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'field data harus terisi semua!!!',
+      });
     }
   };
 
@@ -115,17 +159,47 @@ const Admin = () => {
       setNim('');
       setProdi('');
       setAngkatan('');
+      Swal.fire({
+        position: 'center',
+        icon: 'success',
+        title: 'Your data has been updated',
+        showConfirmButton: false,
+        timer: 1500
+      })
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await deleteStudent({ variables: { id } });
-    } catch (error) {
-      console.error('Error:', error);
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to delete this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteStudent({ variables: { id } });
+          Swal.fire(
+            'Deleted!',
+            'Your file has been deleted.',
+            'success'
+          );
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Something went wrong!',
+            footer: '<a href="">Why do I have this issue?</a>'
+          });
+        }
+      }
+    });
   };
 
   const handleEdit = (student) => {
@@ -149,6 +223,13 @@ const Admin = () => {
       <h1 className="text-2xl font-bold mb-4 mt-7 text-center">
         Daftar Mahasiswa
       </h1>
+      <button
+        className="bg-red-500 text-white px-4 py-2 rounded ml-4"
+        type="button"
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
       <form className="mb-14 w-1/2 mx-auto">
         <div className="mb-4">
           <input
