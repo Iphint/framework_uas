@@ -66,7 +66,7 @@ export default function Example() {
                         className={classNames(
                           item.current
                             ? ' text-white'
-                            : 'text-gray-300 hover:text-gray-700',
+                            : 'text-gray-300 hover:text-gray-900',
                           'rounded-md px-3 py-2 text-sm font-medium'
                         )}
                         aria-current={item.current ? 'page' : undefined}

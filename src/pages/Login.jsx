@@ -24,6 +24,7 @@ const Login = () => {
       window.location.href = '/admin';
       console.log('Login berhasil, token:', token);
     } else {
+      alert("data salah")
       console.error('Error: Invalid username or password');
     }
   };

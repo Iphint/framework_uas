@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
-import gql from 'graphql-tag';
 import Swal from 'sweetalert2';
+import Navbar from '../component/NavAdmin';
+import { gql } from 'graphql-tag';
+import Chart from 'chart.js/auto';
+import ReactPaginate from 'react-paginate';
 
 const GET_STUDENTS = gql`
   query GetStudents($page: Int!, $pageSize: Int!) {
@@ -16,26 +19,6 @@ const GET_STUDENTS = gql`
       aggregate {
         count
       }
-    }
-  }
-`;
-
-
-const ADD_STUDENT = gql`
-  mutation AddStudent(
-    $name: String!
-    $nim: Int!
-    $prodi: String!
-    $angkatan: Int!
-  ) {
-    insert_table_mhs_one(
-      object: { nama: $name, nim: $nim, prodi: $prodi, angkatan: $angkatan }
-    ) {
-      id
-      nama
-      prodi
-      angkatan
-      nim
     }
   }
 `;
@@ -76,28 +59,27 @@ const Admin = () => {
   const [angkatan, setAngkatan] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5; // Number of items per page
+  const pageSize = 7; // Number of items per page
 
-  const { loading, error, data, refetch } = useQuery(GET_STUDENTS, {
+  const { loading, error, data } = useQuery(GET_STUDENTS, {
     variables: {
       page: (currentPage - 1) * pageSize,
       pageSize: pageSize,
     },
   });
-  
-  const [addStudent] = useMutation(ADD_STUDENT, {
-    onCompleted: () => {
-      refetch();
-      setCurrentPage(1); // Reset to the first page after adding a student
-    },
-  });
+
+  const handlePageChange = (selected) => {
+    const page = selected.selected + 1;
+    setCurrentPage(page);
+  };
+
   const [updateStudent] = useMutation(UPDATE_STUDENT, {
     refetchQueries: [{ query: GET_STUDENTS }],
   });
   const [deleteStudent] = useMutation(DELETE_STUDENT, {
     refetchQueries: [{ query: GET_STUDENTS }],
   });
-  
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -105,111 +87,46 @@ const Admin = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: "Apakah anda ingin logout ?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, logout!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
-      });
-    }
-  };
-
-  const handleAdd = async () => {
-    try {
-      await addStudent({
-        variables: {
-          name,
-          nim: parseInt(nim),
-          prodi,
-          angkatan: parseInt(angkatan),
-        },
-      });
-      setName('');
-      setNim('');
-      setProdi('');
-      setAngkatan('');
-      Swal.fire({
-        position: 'center',
-        icon: 'success',
-        title: 'Data successfully added',
-        showConfirmButton: false,
-        timer: 1500
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'field data harus terisi semua!!!',
-      });
-    }
-  };
-
-  const handleUpdate = async () => {
-    try {
-      await updateStudent({
+  const handleUpdate = () => {
+    if (selectedStudent && name && nim && prodi && angkatan) {
+      updateStudent({
         variables: {
           id: selectedStudent.id,
-          name,
+          name: name,
           nim: parseInt(nim),
-          prodi,
+          prodi: prodi,
           angkatan: parseInt(angkatan),
         },
       });
-      setSelectedStudent(null);
       setName('');
       setNim('');
       setProdi('');
       setAngkatan('');
-      Swal.fire({
-        position: 'center',
-        icon: 'success',
-        title: 'Your data has been updated',
-        showConfirmButton: false,
-        timer: 1500
-      })
-    } catch (error) {
-      console.error('Error:', error);
+      setSelectedStudent(null);
+      Swal.fire('Success', 'Data berhasil di update', 'success');
+      window.location.reload();
+    } else {
+      Swal.fire('Error', 'Harap lengkapi semua input', 'error');
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     Swal.fire({
       title: 'Are you sure?',
-      text: "You won't be able to delete this!",
+      text: 'Apakah anda ingin menghapus mahasiswa ini?',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!'
-    }).then(async (result) => {
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Hapus',
+      cancelButtonText: 'Batal',
+    }).then((result) => {
       if (result.isConfirmed) {
-        try {
-          await deleteStudent({ variables: { id } });
-          Swal.fire(
-            'Deleted!',
-            'Your file has been deleted.',
-            'success'
-          );
-        } catch (error) {
-          console.error('Error:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: 'Something went wrong!',
-          });
-        }
+        deleteStudent({
+          variables: {
+            id: id,
+          },
+        });
       }
     });
   };
@@ -217,14 +134,72 @@ const Admin = () => {
   const handleEdit = (student) => {
     setSelectedStudent(student);
     setName(student.nama);
-    setNim(student.nim.toString());
+    setNim(student.nim);
     setProdi(student.prodi);
-    setAngkatan(student.angkatan.toString());
+    setAngkatan(student.angkatan);
   };
 
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
+  useEffect(() => {
+    let chart = null;
+    if (data) {
+      const { table_mhs } = data;
+      const students = table_mhs;
+
+      // Count the number of students in each program
+      const programCounts = {};
+      students.forEach((student) => {
+        const { prodi } = student;
+        if (programCounts[prodi]) {
+          programCounts[prodi] += 1;
+        } else {
+          programCounts[prodi] = 1;
+        }
+      });
+      // Destroy previous chart if it exists
+      if (chart) {
+        chart.destroy();
+      }
+
+      // Create the chart
+      const chartCanvas = document.getElementById('chartCanvas');
+      const chartData = {
+        labels: Object.keys(programCounts),
+        datasets: [
+          {
+            label: 'Number of Students',
+            data: Object.values(programCounts),
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+              'rgba(255, 159, 64, 0.6)',
+              'rgba(255, 99, 132, 0.6)',
+            ],
+            borderWidth: 1,
+            borderColor: '#777',
+            hoverBorderWidth: 3,
+            hoverBorderColor: '#000',
+          },
+        ],
+      };
+
+      chart = new Chart(chartCanvas, {
+        type: 'bar',
+        data: chartData,
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              precision: 0,
+            },
+          },
+        },
+      });
+    }
+  }, [data]);
 
   if (loading)
     return (
@@ -234,145 +209,147 @@ const Admin = () => {
     );
   if (error) return <p>Error: {error.message}</p>;
 
-  const totalItems = data.table_mhs_aggregate.aggregate.count;
-  const totalPages = Math.ceil(totalItems / pageSize);
-
   return (
-    <div className="w-full">
-      <h1 className="text-2xl font-bold mb-4 mt-7 text-center">
-        Daftar Mahasiswa
-      </h1>
-      <button
-        className="bg-red-500 text-white px-4 py-2 rounded ml-4"
-        type="button"
-        onClick={handleLogout}
-      >
-        Logout
-      </button>
-      <form className="mb-14 w-1/2 mx-auto">
-        <div className="mb-4">
-          <input
-            className="border border-gray-300 px-4 py-2 w-full rounded"
-            type="text"
-            placeholder="Nama"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+    <div className="flex">
+      <Navbar />
+      <div className="container flex flex-col mx-auto p-4">
+        <div className="w-1/2 mx-auto">
+          <h1 className="text-2xl font-bold mb-4">Data Mahasiswa</h1>
+          <table className="w-full">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Nama</th>
+                <th className="px-4 py-2">NIM</th>
+                <th className="px-4 py-2">Program Studi</th>
+                <th className="px-4 py-2">Angkatan</th>
+                <th className="px-4 py-2">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.table_mhs.map((student) => (
+                <tr key={student.id}>
+                  <td className="border px-4 py-2">{student.nama}</td>
+                  <td className="border px-4 py-2">{student.nim}</td>
+                  <td className="border px-4 py-2">{student.prodi}</td>
+                  <td className="border px-4 py-2">{student.angkatan}</td>
+                  <td className="border px-4 py-2">
+                    <button
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
+                      onClick={() => handleEdit(student)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                      onClick={() => handleDelete(student.id)}
+                    >
+                      Hapus
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+       {/* Pagination */}
+       <div className="flex justify-center mt-4">
+          <ReactPaginate
+            previousLabel={'Previous'}
+            nextLabel={'Next'}
+            breakLabel={'...'}
+            breakClassName={'break-me'}
+            pageCount={Math.ceil(data.table_mhs_aggregate.aggregate.count / pageSize)}
+            marginPagesDisplayed={2}
+            pageRangeDisplayed={5}
+            onPageChange={handlePageChange}
+            containerClassName={'pagination'}
+            subContainerClassName={'pages pagination'}
+            activeClassName={'active'}
+            forcePage={currentPage} // Add this line
           />
         </div>
-        <div className="mb-4">
-          <input
-            className="border border-gray-300 px-4 py-2 w-full rounded"
-            type="text"
-            placeholder="NIM"
-            value={nim}
-            onChange={(e) => setNim(e.target.value)}
-          />
+        <div className="w-1/2 mx-auto">
+          {selectedStudent && (
+            <div className="mt-8">
+              <h1 className="text-2xl font-bold mb-4">Edit Mahasiswa</h1>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-bold mb-1" htmlFor="name">
+                    Nama
+                  </label>
+                  <input
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                    type="text"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1" htmlFor="nim">
+                    NIM
+                  </label>
+                  <input
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                    type="number"
+                    id="nim"
+                    value={nim}
+                    onChange={(e) => setNim(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold mb-1" htmlFor="prodi">
+                    Program Studi
+                  </label>
+                  <select
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                    id="prodi"
+                    value={prodi}
+                    onChange={(e) => setProdi(e.target.value)}
+                  >
+                    <option value="">Pilih Program Studi</option>
+                    <option value="S1 Teknik Informatika">
+                      S1 Teknik Informatika
+                    </option>
+                    <option value="S1 Sistem Informasi">
+                      S1 Sistem Informasi
+                    </option>
+                    <option value="D3 Manajemen Informatika">
+                      D3 Manajemen Informatika
+                    </option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold mb-1" htmlFor="angkatan">
+                    Angkatan
+                  </label>
+                  <select
+                    className="border border-gray-300 px-4 py-2 w-full rounded"
+                    value={angkatan}
+                    onChange={(e) => setAngkatan(e.target.value)}
+                  >
+                    <option value="">Pilih Angkatan</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                  </select>
+                </div>
+                <div className="col-span-3">
+                  <button
+                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={handleUpdate}
+                  >
+                    Update
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="mb-4">
-          <select
-            className="border border-gray-300 px-4 py-2 w-full rounded"
-            value={prodi}
-            onChange={(e) => setProdi(e.target.value)}
-          >
-            <option value="">Pilih Program Studi</option>
-            <option value="Teknik Informatika">Teknik Informatika</option>
-            <option value="Sistem Informasi">Sistem Informasi</option>
-            <option value="Manajemen Informatika">Manajemen Informatika</option>
-          </select>
+        <div className="w-1/2 mx-auto">
+          <h1 className="text-2xl font-bold mt-8 mb-4">Grafik Program Studi</h1>
+          <canvas id="chartCanvas" className="w-1/2 h-64"></canvas>
         </div>
-        <div className="mb-4">
-          <select
-            className="border border-gray-300 px-4 py-2 w-full rounded"
-            value={angkatan}
-            onChange={(e) => setAngkatan(e.target.value)}
-          >
-            <option value="">Pilih Angkatan</option>
-            <option value="2019">2019</option>
-            <option value="2020">2020</option>
-            <option value="2021">2021</option>
-          </select>
-        </div>
-        {!selectedStudent ? (
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            type="button"
-            onClick={handleAdd}
-          >
-            Tambah Mahasiswa
-          </button>
-        ) : (
-          <button
-            className="bg-gray-500 text-white px-4 py-2 rounded"
-            type="button"
-            onClick={handleUpdate}
-          >
-            Update Mahasiswa
-          </button>
-        )}
-      </form>
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">No</th>
-            <th className="px-4 py-2">Nama</th>
-            <th className="px-4 py-2">NIM</th>
-            <th className="px-4 py-2">Prodi</th>
-            <th className="px-4 py-2">Angkatan</th>
-            <th className="px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.table_mhs.map((student, i) => (
-            <tr key={student.id} className="mb-2">
-              <td className="px-4 py-2 text-center">{i + 1}</td>
-              <td className="px-4 py-2 text-center">{student.nama}</td>
-              <td className="px-4 py-2 text-center">{student.nim}</td>
-              <td className="px-4 py-2 text-center">{student.prodi}</td>
-              <td className="px-4 py-2 text-center">{student.angkatan}</td>
-              <td className="px-4 py-2 text-center">
-                <button
-                  className="bg-green-500 text-white px-2 py-1 rounded mr-2"
-                  type="button"
-                  onClick={() => handleEdit(student)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                  type="button"
-                  onClick={() => handleDelete(student.id)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="flex justify-center items-center mt-4">
-        <button
-          className={`bg-gray-500 text-white px-4 py-2 rounded ${
-            currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          type="button"
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          Previous
-        </button>
-        <span className="mx-4 text-gray-700">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          className={`bg-gray-500 text-white px-4 py-2 rounded ${
-            currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-          type="button"
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          Next
-        </button>
       </div>
     </div>
   );
