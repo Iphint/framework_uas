@@ -10,8 +10,6 @@ import Admin from './pages/Admin';
 import { ApolloProvider } from '@apollo/client';
 import { GraphQlClient } from './api/Graph';
 import Form from './component/Form';
-import Coba from './pages/Coba';
-import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -19,12 +17,10 @@ function App() {
       <Router>
         <Routes>
           <Route path='/' element={<Home/>}></Route>
-          <Route path='/admin/dashboard' element={<Dashboard/>}></Route>
           <Route path='/admin/form' element={<Form/>}></Route>
           <Route path='/login' element={<Login/>}></Route>
           <Route path='/daftarsiswa' element={<DaftarSiswa/>}></Route>
           <Route path='/denah' element={<Denah/>}></Route>
-          <Route path='/coba' element={<Coba/>}></Route>
           <Route path='/contact' element={<Contact/>}></Route>
           <Route path='/admin/mahasiswa' element={<Admin/>}></Route>
           <Route path='*' element={<NotFound/>}></Route>

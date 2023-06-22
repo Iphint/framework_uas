@@ -426,7 +426,6 @@ const Admin = () => {
               </div>
             </div>
           </div>
-          
           )}
         </div>
         <div className="w-1/2 mx-auto">
