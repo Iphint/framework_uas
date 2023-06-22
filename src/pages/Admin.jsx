@@ -14,6 +14,9 @@ const GET_STUDENTS = gql`
       prodi
       angkatan
       nim
+      status
+      images
+      sosmed
     }
     table_mhs_aggregate {
       aggregate {
@@ -30,16 +33,30 @@ const UPDATE_STUDENT = gql`
     $nim: Int!
     $prodi: String!
     $angkatan: Int!
+    $status: String!
+    $images: String!
+    $sosmed: String!
   ) {
     update_table_mhs_by_pk(
       pk_columns: { id: $id }
-      _set: { nama: $name, nim: $nim, prodi: $prodi, angkatan: $angkatan }
+      _set: {
+        nama: $name
+        nim: $nim
+        prodi: $prodi
+        angkatan: $angkatan
+        status: $status
+        images: $images
+        sosmed: $sosmed
+      }
     ) {
       id
       nama
       prodi
       angkatan
       nim
+      status
+      images
+      sosmed
     }
   }
 `;
@@ -56,6 +73,9 @@ const Admin = () => {
   const [name, setName] = useState('');
   const [nim, setNim] = useState('');
   const [prodi, setProdi] = useState('');
+  const [status, setStatus] = useState('');
+  const [images, setImages] = useState('');
+  const [sosmed, setSosmed] = useState('');
   const [angkatan, setAngkatan] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,7 +108,16 @@ const Admin = () => {
   }, []);
 
   const handleUpdate = () => {
-    if (selectedStudent && name && nim && prodi && angkatan) {
+    if (
+      selectedStudent &&
+      name &&
+      nim &&
+      prodi &&
+      angkatan &&
+      status &&
+      images &&
+      sosmed
+    ) {
       updateStudent({
         variables: {
           id: selectedStudent.id,
@@ -96,15 +125,26 @@ const Admin = () => {
           nim: parseInt(nim),
           prodi: prodi,
           angkatan: parseInt(angkatan),
+          status: status,
+          images: images,
+          sosmed: sosmed,
         },
-      });
-      setName('');
-      setNim('');
-      setProdi('');
-      setAngkatan('');
-      setSelectedStudent(null);
-      Swal.fire('Success', 'Data berhasil di update', 'success');
-      window.location.reload();
+      })
+        .then(() => {
+          setName('');
+          setNim('');
+          setProdi('');
+          setAngkatan('');
+          setStatus('');
+          setImages('');
+          setSosmed('');
+          setSelectedStudent(null);
+          Swal.fire('Success', 'Data berhasil diupdate', 'success');
+          setCurrentPage(1); // Reset to the first page after update
+        })
+        .catch((error) => {
+          Swal.fire('Error', `Data gagal diupdate: ${error.message}`, 'error');
+        });
     } else {
       Swal.fire('Error', 'Harap lengkapi semua input', 'error');
     }
@@ -137,6 +177,9 @@ const Admin = () => {
     setNim(student.nim);
     setProdi(student.prodi);
     setAngkatan(student.angkatan);
+    setStatus(student.status);
+    setImages(student.images);
+    setSosmed(student.sosmed);
   };
 
   useEffect(() => {
@@ -222,6 +265,9 @@ const Admin = () => {
                 <th className="px-4 py-2">NIM</th>
                 <th className="px-4 py-2">Program Studi</th>
                 <th className="px-4 py-2">Angkatan</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Sosmed</th>
+                <th className="px-4 py-2">Linkedin</th>
                 <th className="px-4 py-2">Aksi</th>
               </tr>
             </thead>
@@ -232,7 +278,10 @@ const Admin = () => {
                   <td className="border px-4 py-2">{student.nim}</td>
                   <td className="border px-4 py-2">{student.prodi}</td>
                   <td className="border px-4 py-2">{student.angkatan}</td>
-                  <td className="border px-4 py-2">
+                  <td className="border px-4 py-2">{student.status}</td>
+                  <td className="border px-4 py-2">{student.images}</td>
+                  <td className="border px-4 py-2">{student.sosmed}</td>
+                  <td className="px-4 py-2 flex items-center">
                     <button
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
                       onClick={() => handleEdit(student)}
@@ -271,79 +320,113 @@ const Admin = () => {
         <div className="w-1/2 mx-auto">
           {selectedStudent && (
             <div className="mt-8">
-              <h1 className="text-2xl font-bold mb-4">Edit Mahasiswa</h1>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-bold mb-1" htmlFor="name">
-                    Nama
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold mb-1" htmlFor="nim">
-                    NIM
-                  </label>
-                  <input
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
-                    type="number"
-                    id="nim"
-                    value={nim}
-                    onChange={(e) => setNim(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold mb-1" htmlFor="prodi">
-                    Program Studi
-                  </label>
-                  <select
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
-                    id="prodi"
-                    value={prodi}
-                    onChange={(e) => setProdi(e.target.value)}
-                  >
-                    <option value="">Pilih Program Studi</option>
-                    <option value="S1 Teknik Informatika">
-                      S1 Teknik Informatika
-                    </option>
-                    <option value="S1 Sistem Informasi">
-                      S1 Sistem Informasi
-                    </option>
-                    <option value="D3 Manajemen Informatika">
-                      D3 Manajemen Informatika
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-bold mb-1" htmlFor="angkatan">
-                    Angkatan
-                  </label>
-                  <select
-                    className="border border-gray-300 px-4 py-2 w-full rounded"
-                    value={angkatan}
-                    onChange={(e) => setAngkatan(e.target.value)}
-                  >
-                    <option value="">Pilih Angkatan</option>
-                    <option value="2019">2019</option>
-                    <option value="2020">2020</option>
-                    <option value="2021">2021</option>
-                  </select>
-                </div>
-                <div className="col-span-3">
-                  <button
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={handleUpdate}
-                  >
-                    Update
-                  </button>
-                </div>
+            <h1 className="text-2xl font-bold mb-4">Edit Mahasiswa</h1>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block font-bold mb-1" htmlFor="name">
+                  Nama
+                </label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="nim">
+                  NIM
+                </label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  type="number"
+                  id="nim"
+                  value={nim}
+                  onChange={(e) => setNim(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="prodi">
+                  Program Studi
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  id="prodi"
+                  value={prodi}
+                  onChange={(e) => setProdi(e.target.value)}
+                >
+                  <option value="">Pilih Program Studi</option>
+                  <option value="S1 Teknik Informatika">S1 Teknik Informatika</option>
+                  <option value="S1 Sistem Informasi">S1 Sistem Informasi</option>
+                  <option value="D3 Manajemen Informatika">D3 Manajemen Informatika</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="angkatan">
+                  Angkatan
+                </label>
+                <select
+                  className="border border-gray-300 px-4 py-2 w-full rounded"
+                  value={angkatan}
+                  onChange={(e) => setAngkatan(e.target.value)}
+                >
+                  <option value="">Pilih Angkatan</option>
+                  <option value="2019">2019</option>
+                  <option value="2020">2020</option>
+                  <option value="2021">2021</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="status">
+                  Status
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  id="status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="">Pilih Status</option>
+                  <option value="Masih Aktif">Masih Aktif</option>
+                  <option value="Sudah Lulus">Sudah Lulus</option>
+                </select>
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="images">
+                  Images
+                </label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  type="text"
+                  id="images"
+                  value={images}
+                  onChange={(e) => setImages(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="sosmed">
+                  Sosmed
+                </label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  type="text"
+                  id="sosmed"
+                  value={sosmed}
+                  onChange={(e) => setSosmed(e.target.value)}
+                />
+              </div>
+              <div className="col-span-3">
+                <button
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={handleUpdate}
+                >
+                  Update
+                </button>
               </div>
             </div>
+          </div>
+          
           )}
         </div>
         <div className="w-1/2 mx-auto">

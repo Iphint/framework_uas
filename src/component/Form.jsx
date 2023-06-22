@@ -26,9 +26,20 @@ const ADD_STUDENT = gql`
     $nim: Int!
     $prodi: String!
     $angkatan: Int!
+    $images: String!
+    $sosmed: String!
+    $status: String!
   ) {
     insert_table_mhs_one(
-      object: { nama: $name, nim: $nim, prodi: $prodi, angkatan: $angkatan }
+      object: {
+        nama: $name
+        nim: $nim
+        prodi: $prodi
+        angkatan: $angkatan
+        images: $images
+        sosmed: $sosmed
+        status: $status
+      }
     ) {
       id
       nama
@@ -44,6 +55,9 @@ const Form = () => {
   const [nim, setNim] = useState('');
   const [prodi, setProdi] = useState('');
   const [angkatan, setAngkatan] = useState('');
+  const [images, setImages] = useState('');
+  const [sosmed, setSosmed] = useState('');
+  const [status, setStatus] = useState('');
 
   const { refetch } = useQuery(GET_STUDENTS);
 
@@ -54,21 +68,27 @@ const Form = () => {
   });
 
   const handleAdd = () => {
-    if (name && nim && prodi && angkatan) {
+    if (name && nim && prodi && angkatan && images && sosmed && status) {
       addStudent({
         variables: {
           name: name,
           nim: parseInt(nim),
           prodi: prodi,
           angkatan: parseInt(angkatan),
+          images: images,
+          sosmed: sosmed,
+          status: status,
         },
       });
       setName('');
       setNim('');
       setProdi('');
       setAngkatan('');
+      setImages('');
+      setSosmed('');
+      setStatus('');
 
-      Swal.fire('Success', 'Data berhasil di tambahkan', 'success');
+      Swal.fire('Success', 'Data berhasil ditambahkan', 'success');
     } else {
       Swal.fire('Error', 'Harap lengkapi semua input', 'error');
     }
@@ -124,6 +144,35 @@ const Form = () => {
               <option value="2019">2019</option>
               <option value="2020">2020</option>
               <option value="2021">2021</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <input
+              className="border border-gray-300 px-4 py-2 w-full rounded"
+              type="text"
+              placeholder="Images URL"
+              value={images}
+              onChange={(e) => setImages(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <input
+              className="border border-gray-300 px-4 py-2 w-full rounded"
+              type="text"
+              placeholder="Link linkedin"
+              value={sosmed}
+              onChange={(e) => setSosmed(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <select
+              className="border border-gray-300 px-4 py-2 w-full rounded"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">Pilih Status</option>
+              <option value="Sudah Lulus">Sudah Lulus</option>
+              <option value="Masih Aktif">Masih Aktif</option>
             </select>
           </div>
           <button
