@@ -34,14 +34,6 @@ const Sidebar = () => {
         <ul className="p-2">
           <li className="mb-2">
             <Link
-              to="/admin/dashboard"
-              className="block py-2 px-4 rounded hover:bg-gray-700"
-            >
-              Dashboard
-            </Link>
-          </li>
-          <li className="mb-2">
-            <Link
               to="/admin/form"
               className="block py-2 px-4 rounded hover:bg-gray-700"
             >

@@ -7,7 +7,6 @@ const Denah = () => {
     <div>
       <Navbar />
       <Map/>
-      
     </div>
   );
 };

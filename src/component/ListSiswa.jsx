@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-no-target-blank */
 /* eslint-disable jsx-a11y/img-redundant-alt */
 import { gql, useQuery } from '@apollo/client';
-import { Typography } from '@material-tailwind/react';
 
 import Linked from '../logo/linked.png';
 
