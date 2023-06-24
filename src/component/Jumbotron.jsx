@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Jumbotron = () => {
   const jumbotronStyle = {
-    backgroundImage: "url('https://tecdn.b-cdn.net/img/new/slides/041.webp')",
+    backgroundImage: "url('https://images.unsplash.com/photo-1525921429624-479b6a26d84d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8Y29sbGVnZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60')",
     height: '100vh',
   };
 
