@@ -10,6 +10,7 @@ import Admin from './pages/Admin';
 import { ApolloProvider } from '@apollo/client';
 import { GraphQlClient } from './api/Graph';
 import Form from './component/Form';
+import LoginSiswa from './pages/LoginSiswa';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Router>
         <Routes>
           <Route path='/' element={<Home/>}></Route>
+          <Route path='/loginsiswa' element={<LoginSiswa/>}></Route>
           <Route path='/admin/form' element={<Form/>}></Route>
           <Route path='/login' element={<Login/>}></Route>
           <Route path='/daftarsiswa' element={<DaftarSiswa/>}></Route>
