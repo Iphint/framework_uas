@@ -88,7 +88,7 @@ export default function Example() {
                   </div>
                 </div>
                 {token && (
-                  <Menu as="div" className="relative">
+                  <Menu as="div" className="absolute right-0 ">
                     <div>
                       <Menu.Button className="flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                         <span className="sr-only">Open user menu</span>
