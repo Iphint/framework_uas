@@ -21,7 +21,7 @@ const Login = () => {
       localStorage.setItem('token', token);
 
       // Redirect ke halaman utama setelah berhasil login
-      window.location.href = '/admin/dashboard';
+      window.location.href = '/admin/mahasiswa';
       console.log('Login berhasil, token:', token);
     } else {
       alert("data salah")

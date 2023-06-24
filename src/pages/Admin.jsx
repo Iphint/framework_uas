@@ -17,6 +17,8 @@ const GET_STUDENTS = gql`
       status
       images
       sosmed
+      password
+      email
     }
     table_mhs_aggregate {
       aggregate {
@@ -36,6 +38,8 @@ const UPDATE_STUDENT = gql`
     $status: String!
     $images: String!
     $sosmed: String!
+    $password: String!
+    $email: String!
   ) {
     update_table_mhs_by_pk(
       pk_columns: { id: $id }
@@ -47,6 +51,8 @@ const UPDATE_STUDENT = gql`
         status: $status
         images: $images
         sosmed: $sosmed
+        password: $password
+        email: $email
       }
     ) {
       id
@@ -57,6 +63,8 @@ const UPDATE_STUDENT = gql`
       status
       images
       sosmed
+      email
+      password
     }
   }
 `;
@@ -77,6 +85,8 @@ const Admin = () => {
   const [images, setImages] = useState('');
   const [sosmed, setSosmed] = useState('');
   const [angkatan, setAngkatan] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7; // Number of items per page
@@ -116,7 +126,9 @@ const Admin = () => {
       angkatan &&
       status &&
       images &&
-      sosmed
+      sosmed &&
+      password && 
+      email
     ) {
       updateStudent({
         variables: {
@@ -128,6 +140,8 @@ const Admin = () => {
           status: status,
           images: images,
           sosmed: sosmed,
+          email: email,
+          password: password
         },
       })
         .then(() => {
@@ -138,6 +152,8 @@ const Admin = () => {
           setStatus('');
           setImages('');
           setSosmed('');
+          setPassword('');
+          setEmail('');
           setSelectedStudent(null);
           Swal.fire('Success', 'Data berhasil diupdate', 'success');
           setCurrentPage(1); // Reset to the first page after update
@@ -178,6 +194,8 @@ const Admin = () => {
     setProdi(student.prodi);
     setAngkatan(student.angkatan);
     setStatus(student.status);
+    setPassword(student.password);
+    setEmail(student.email);
     setImages(student.images);
     setSosmed(student.sosmed);
   };
@@ -268,6 +286,8 @@ const Admin = () => {
                 <th className="px-4 py-2">Status</th>
                 <th className="px-4 py-2">Sosmed</th>
                 <th className="px-4 py-2">Linkedin</th>
+                <th className="px-4 py-2">Email</th>
+                <th className="px-4 py-2">Password</th>
                 <th className="px-4 py-2">Aksi</th>
               </tr>
             </thead>
@@ -281,6 +301,8 @@ const Admin = () => {
                   <td className="border px-4 py-2">{student.status}</td>
                   <td className="border px-4 py-2">{student.images}</td>
                   <td className="border px-4 py-2">{student.sosmed}</td>
+                  <td className="border px-4 py-2">{student.email}</td>
+                  <td className="border px-4 py-2">{student.password}</td>
                   <td className="px-4 py-2 flex items-center">
                     <button
                       className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2"
@@ -414,6 +436,30 @@ const Admin = () => {
                   id="sosmed"
                   value={sosmed}
                   onChange={(e) => setSosmed(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="sosmed">
+                  Email
+                </label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  type="email"
+                  id="sosmed"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block font-bold mb-1" htmlFor="sosmed">
+                  Password
+                </label>
+                <input
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  type="text"
+                  id="sosmed"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <div className="col-span-3">

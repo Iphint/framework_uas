@@ -29,6 +29,8 @@ const ADD_STUDENT = gql`
     $images: String!
     $sosmed: String!
     $status: String!
+    $email: String!
+    $password: String!
   ) {
     insert_table_mhs_one(
       object: {
@@ -39,6 +41,8 @@ const ADD_STUDENT = gql`
         images: $images
         sosmed: $sosmed
         status: $status
+        email: $email
+        password: $password
       }
     ) {
       id
@@ -58,6 +62,8 @@ const Form = () => {
   const [images, setImages] = useState('');
   const [sosmed, setSosmed] = useState('');
   const [status, setStatus] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const { refetch } = useQuery(GET_STUDENTS);
 
@@ -78,6 +84,8 @@ const Form = () => {
           images: images,
           sosmed: sosmed,
           status: status,
+          email: email,
+          password: password
         },
       });
       setName('');
@@ -87,6 +95,8 @@ const Form = () => {
       setImages('');
       setSosmed('');
       setStatus('');
+      setEmail('');
+      setPassword('');
 
       Swal.fire('Success', 'Data berhasil ditambahkan', 'success');
     } else {
@@ -162,6 +172,24 @@ const Form = () => {
               placeholder="Link linkedin"
               value={sosmed}
               onChange={(e) => setSosmed(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <input
+              className="border border-gray-300 px-4 py-2 w-full rounded"
+              type="text"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <input
+              className="border border-gray-300 px-4 py-2 w-full rounded"
+              type="text"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
           <div className="mb-4">
